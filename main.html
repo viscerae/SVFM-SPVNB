@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Issue Dashboard</title>
+ 
+<style>
+body{
+    font-family:Arial,sans-serif;
+    background:#f4f4f4;
+    max-width:1200px;
+    margin:auto;
+    padding:20px;
+}
+ 
+h1,h2{
+    text-align:center;
+}
+ 
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:15px;
+}
+ 
+.card{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 2px 8px rgba(0,0,0,.1);
+    text-align:center;
+}
+ 
+.count{
+    font-size:3rem;
+    margin:15px 0;
+    font-weight:bold;
+}
+ 
+button{
+    padding:10px 15px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+}
+ 
+.add{
+    background:#28a745;
+    color:white;
+}
+ 
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+    background:white;
+}
+ 
+th,td{
+    border:1px solid #ddd;
+    padding:10px;
+    text-align:center;
+}
+</style>
+</head>
+<body>
+ 
+<h1>Supervisor Issue Tracking</h1>
+<p id="today"></p>
+ 
+<div class="grid" id="processGrid"></div>
+ 
+<h2>Daily History</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Indisponibilidade Canais Digitais</th>
+            <th>Restituição CP</th>
+            <th>teste3</th>
+            <th>teste4</th>
+            <th>teste5</th>
+        </tr>
+    </thead>
+    <tbody id="historyTable"></tbody>
+</table>
+ 
+<script>
+ 
+const processes = [
+    "Indisponibilidade Canais Digitais",
+    "Restituição CP",
+    "teste3",
+    "teste4",
+    "teste5"
+];
+ 
+function today(){
+    return new Date().toISOString().split('T')[0];
+}
+ 
+function createEmptyCounts(){
+    const obj={};
+    processes.forEach(p=>obj[p]=0);
+    return obj;
+}
+ 
+function loadData(){
+    return JSON.parse(localStorage.getItem("productionData")) || {
+        currentDate: today(),
+        counts: createEmptyCounts(),
+        history:[]
+    };
+}
+ 
+function saveData(data){
+    localStorage.setItem("productionData",JSON.stringify(data));
+}
+ 
+function rollover(){
+    const data = loadData();
+ 
+    if(data.currentDate !== today()){
+ 
+        data.history.push({
+            date:data.currentDate,
+            ...data.counts
+        });
+ 
+        data.currentDate = today();
+        data.counts = createEmptyCounts();
+ 
+        saveData(data);
+    }
+}
+ 
+function increment(process){
+    rollover();
+ 
+    const data = loadData();
+    data.counts[process]++;
+    saveData(data);
+ 
+    render();
+}
+ 
+function render(){
+ 
+    rollover();
+ 
+    const data = loadData();
+ 
+    document.getElementById("today").innerHTML =
+        `<strong>Date:</strong> ${data.currentDate}`;
+ 
+    const grid = document.getElementById("processGrid");
+ 
+    grid.innerHTML = processes.map(process => `
+        <div class="card">
+            <h3>${process}</h3>
+            <div class="count">${data.counts[process]}</div>
+            <button class="add"
+                onclick="increment('${process}')">
+                +1
+            </button>
+        </div>
+    `).join("");
+ 
+    const historyTable =
+        document.getElementById("historyTable");
+ 
+    historyTable.innerHTML =
+        [...data.history]
+        .reverse()
+        .map(day => `
+            <tr>
+                <td>${day.date}</td>
+                <td>${day["Indisponibilidade Canais Digitais"] || 0}</td>
+                <td>${day["Restituição CP"] || 0}</td>
+                <td>${day["teste3"] || 0}</td>
+                <td>${day["teste4"] || 0}</td>
+                <td>${day["teste5"] || 0}</td>
+            </tr>
+        `).join("");
+}
+ 
+render();
+ 
+</script>
+</body>
+</html>
+ 
