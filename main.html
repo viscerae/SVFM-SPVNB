@@ -26,14 +26,22 @@ function login() {
 
 <script>
 function submitIssue() {
-  fetch("https://svfmnb.com/api/addIssue.php")
+  fetch("https://svfmnb.com/api/addIssue.php", {
+    method: "POST"
+  })
   .then(r => r.json())
   .then(data => {
+    console.log(data);
+
     if (data.success) {
       alert("Issue created: " + data.issueID);
     } else {
-      alert(data.error);
+      alert(data.error || "Failed");
     }
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Request failed");
   });
 }
 </script>
